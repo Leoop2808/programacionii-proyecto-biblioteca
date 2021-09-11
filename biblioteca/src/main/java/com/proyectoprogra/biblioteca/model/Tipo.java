@@ -1,10 +1,9 @@
 package com.proyectoprogra.biblioteca.model;
 
-import javax.persistence.Id;
-
-
 import javax.persistence.Entity;
-
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -19,9 +18,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name="t-libro")
-public class Libro {
+@Table(name="t-categoria")
+public class Tipo {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String titulo;
+    private String descripcion;
 }
