@@ -70,7 +70,7 @@ public class MaterialController {
     public ResponseEntity<ListarTipoMaterialResponse> ListarTipoMaterial(){
         ListarTipoMaterialResponse response = new ListarTipoMaterialResponse();
         try {
-            List<Map<String, Object>> listaTiposMaterial = _materialRepository.queryListarTipoMaterial();         
+            List<Map<String, Object>> listaTiposMaterial = _materialRepository.ListarTipoMaterial();         
            
             if (listaTiposMaterial == null || listaTiposMaterial.size() <= 0) {
                 response.codigo = 0;
@@ -92,5 +92,30 @@ public class MaterialController {
         }
         
         return  new ResponseEntity<ListarTipoMaterialResponse>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/registrar_tema")
+    public ResponseEntity<RegistrarTemaResponse> RegistrarTema(@RequestBody RegistrarTemaRequest request){
+        RegistrarTemaResponse response = new RegistrarTemaResponse();
+        try {
+            if (request == null) {
+                response.codigo = 0;
+                response.descripcion = "No se recibieron datos para registrar un nuevo tema";
+            } else {
+               Integer regTem = _materialRepository.RegistrarTema(request.cod_tema, request.desc_tema , true, false);       
+               if (regTem == null || regTem <= 0) {
+                    response.codigo = 0;
+                    response.descripcion = "No se pudo completar el registro del nuevo tema";
+               }else{
+                    response.codigo = 1;
+                    response.descripcion = "Tema registrado correctamente";
+               }    
+            } 
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al registrar el tema";
+        }
+        
+        return  new ResponseEntity<RegistrarTemaResponse>(response, HttpStatus.OK);
     }
 }
