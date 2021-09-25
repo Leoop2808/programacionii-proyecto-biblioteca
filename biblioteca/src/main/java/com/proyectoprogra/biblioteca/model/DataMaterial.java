@@ -7,6 +7,6 @@ public class DataMaterial
     public Integer id_material;
     public String titulo;
     public String autor;
-    public List<Integer> lista_materias;
+    public List<String> lista_materias;
     public Integer anio;
 }

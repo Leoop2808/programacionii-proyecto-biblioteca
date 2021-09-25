@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.Date;
 import com.proyectoprogra.biblioteca.model.*;
 
 @Repository
@@ -25,23 +25,23 @@ public interface MaterialRepository extends JpaRepository<Material, String>{
     List<Integer> ObtenerListaIdentificadoresTemas(@Param("concatTemas") List<String> concatTemas);
 
     
-    @Query(value = "insert into trs_material (id_tipo_material,id_categoria_material, isbn, autor, titulo, anio, descripcion,editorial, num_paginas,flg_disponibilidad,activo,eliminado) "+
-    " values (:id_tipo_material,:id_categoria_material,:isbn,:autor,:titulo,:anio,:descripcion,:editorial,:num_paginas,:flg_disponibilidad,:activo,:eliminado) returning id_material;", nativeQuery = true)
+    @Query(value = "insert into trs_material (id_tipo_material,id_categoria_material, isbn, autor, titulo, anio, descripcion,editorial, num_paginas,flg_disponibilidad,activo,eliminado, fecha_registro, fecha_modificacion) "+
+    " values (:id_tipo_material,:id_categoria_material,:isbn,:autor,:titulo,:anio,:descripcion,:editorial,:num_paginas,:flg_disponibilidad,:activo,:eliminado, :fecha_hoy, :fecha_hoy) returning id_material;", nativeQuery = true)
     @Transactional
     Integer RegistrarMaterial(@Param("id_tipo_material") Integer id_tipo_material, @Param("id_categoria_material") Integer id_categoria_material, 
     @Param("isbn") String isbn, @Param("autor") String autor, @Param("titulo") String titulo, @Param("anio") Integer anio, @Param("descripcion") String descripcion,
     @Param("editorial") String editorial, @Param("num_paginas") Integer num_paginas, @Param("flg_disponibilidad") Boolean flg_disponibilidad, 
-    @Param("activo") Boolean activo, @Param("eliminado") Boolean eliminado);
+    @Param("activo") Boolean activo, @Param("eliminado") Boolean eliminado, @Param("fecha_hoy") Date fecha_hoy);
 
     @Modifying
-    @Query(value = "insert into trs_material_tema (id_material, id_tema,activo, eliminado) values (:id_material,:id_tema,:activo,:eliminado)", nativeQuery = true)
+    @Query(value = "insert into trs_material_tema (id_material, id_tema,activo, eliminado, fecha_registro, fecha_modificacion) values (:id_material,:id_tema,:activo,:eliminado, :fecha_hoy, :fecha_hoy)", nativeQuery = true)
     @Transactional
-    Integer RegistrarTemaMaterial(@Param("id_material") Integer id_material, @Param("id_tema") Integer id_tema, @Param("activo") Boolean activo, @Param("eliminado") Boolean eliminado);
+    Integer RegistrarTemaMaterial(@Param("id_material") Integer id_material, @Param("id_tema") Integer id_tema, @Param("activo") Boolean activo, @Param("eliminado") Boolean eliminado, @Param("fecha_hoy") Date fecha_hoy);
 
     @Modifying
-    @Query(value = "update trs_material set cod_material  = :cod_material where id_material = :id_material", nativeQuery = true)
+    @Query(value = "update trs_material set cod_material  = :cod_material, fecha_modificacion = :fecha_hoy where id_material = :id_material", nativeQuery = true)
     @Transactional
-    Integer RegistrarCodigoMaterial(@Param("cod_material") String cod_material, @Param("id_material") Integer id_material);
+    Integer RegistrarCodigoMaterial(@Param("cod_material") String cod_material, @Param("id_material") Integer id_material, @Param("fecha_hoy") Date fecha_hoy);
 
     @Query(value = "select tm.cod_tipo_material, tm.descripcion as desc_tipo_material from mst_tipo_material tm where activo  = true and eliminado = false", nativeQuery = true)
     List<Map<String, Object>> ListarTipoMaterial();

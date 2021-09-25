@@ -58,17 +58,19 @@ public class MaterialController {
                 return  new ResponseEntity<RegistrarMaterialResponse>(response, HttpStatus.OK);
             } 
             
+            Date fecha_hoy = Calendar.getInstance().getTime();
+
             Integer idNuevoMaterial = _materialRepository.RegistrarMaterial(id_tipo_material,id_categoria_material,request.isbn,
             request.autor, request.titulo, request.anio, request.descripcion, request.editorial, request.num_paginas,
-            true, true, false);       
+            true, true, false, fecha_hoy);       
             if (idNuevoMaterial == null || idNuevoMaterial <= 0) {
                  response.codigo = 0;
                  response.descripcion = "No se pudo completar el registro del material";
             }else{
                 String codigoMaterial = idNuevoMaterial.toString();
-                Integer resUpdMat = _materialRepository.RegistrarCodigoMaterial(codigoMaterial, idNuevoMaterial);
+                Integer resUpdMat = _materialRepository.RegistrarCodigoMaterial(codigoMaterial, idNuevoMaterial,fecha_hoy);
                 for (Integer idTema : listaTemas) {
-                    Integer regTemaMat = _materialRepository.RegistrarTemaMaterial(idNuevoMaterial, idTema, true, false);  
+                    Integer regTemaMat = _materialRepository.RegistrarTemaMaterial(idNuevoMaterial, idTema, true, false, fecha_hoy);  
                 }
                 response.codigo = 1;   
                 response.descripcion = "Material registrado correctamente";
