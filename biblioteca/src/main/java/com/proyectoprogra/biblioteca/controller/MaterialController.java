@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.*;
-
+import java.util.List;
 import com.proyectoprogra.biblioteca.repository.MaterialRepository;
 
 @RestController
 @RequestMapping(value = "api/material", produces = "application/json")
 public class MaterialController {
-    private MaterialRepository _materialRepository;
+    private final MaterialRepository _materialRepository;
 
     public MaterialController(MaterialRepository materialRepository)
     {
@@ -64,5 +64,33 @@ public class MaterialController {
     @PutMapping("/registrar_devolucion_material")
     public ResponseEntity<RegistrarDevolucionMaterialResponse> RegistrarDevolucionMaterial(@PathVariable String codigo_prestamo){
         return new ResponseEntity<RegistrarDevolucionMaterialResponse>(HttpStatus.OK);
+    }
+
+    @GetMapping("/listar_tipo_material")
+    public ResponseEntity<ListarTipoMaterialResponse> ListarTipoMaterial(){
+        ListarTipoMaterialResponse response = new ListarTipoMaterialResponse();
+        try {
+            List<Map<String, Object>> listaTiposMaterial = _materialRepository.queryListarTipoMaterial();         
+           
+            if (listaTiposMaterial == null || listaTiposMaterial.size() <= 0) {
+                response.codigo = 0;
+                response.descripcion = "No se encontraron tipos de materiales";
+            } else {
+                response.listaTiposMaterial = new ArrayList<DetalleTipoMaterial>();
+                for (Map<String,Object> itemIipoMaterial : listaTiposMaterial) {
+                    DetalleTipoMaterial tipoMaterial = new DetalleTipoMaterial();
+                    tipoMaterial.cod_tipo_material = itemIipoMaterial.get("cod_tipo_material").toString();
+                    tipoMaterial.desc_tipo_material = itemIipoMaterial.get("desc_tipo_material").toString();
+                    response.listaTiposMaterial.add(tipoMaterial);
+                }
+                response.codigo = 1;
+                response.descripcion = "Los tipos de materiales se obtuvieron correctamente";
+            }  
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al obtener los tipos de materiales";
+        }
+        
+        return  new ResponseEntity<ListarTipoMaterialResponse>(response, HttpStatus.OK);
     }
 }

@@ -1,11 +1,16 @@
 package com.proyectoprogra.biblioteca.repository;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.proyectoprogra.biblioteca.model.Material;
+import com.proyectoprogra.biblioteca.model.*;
 
 @Repository
 public interface MaterialRepository extends JpaRepository<Material, String>{
-
+    @Query(value = "select tm.cod_tipo_material, tm.descripcion as desc_tipo_material from mst_tipo_material tm where activo  = true and eliminado = false", nativeQuery = true)
+    List<Map<String, Object>> queryListarTipoMaterial();
 }
