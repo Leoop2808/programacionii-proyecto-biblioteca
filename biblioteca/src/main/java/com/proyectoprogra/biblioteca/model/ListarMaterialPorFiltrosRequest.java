@@ -6,7 +6,7 @@ public class ListarMaterialPorFiltrosRequest {
     public Integer anio_inicio;
     public Integer anio_fin;
     public String editorial;
-    public String cod_tipo_materialo;
+    public String cod_tipo_material;
     public String cod_categoria_material;
     public Boolean flg_orden_alfabetico;
 }

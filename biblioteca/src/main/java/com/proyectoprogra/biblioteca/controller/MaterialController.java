@@ -91,10 +91,57 @@ public class MaterialController {
 
     @GetMapping("/lista_materiales")
     public ResponseEntity<ListarMaterialPorFiltrosResponse> ListarMaterialPorFiltros(@RequestBody ListarMaterialPorFiltrosRequest request){
-        return new ResponseEntity<ListarMaterialPorFiltrosResponse>(HttpStatus.OK);
+        ListarMaterialPorFiltrosResponse response = new ListarMaterialPorFiltrosResponse();
+        String listaFiltros = "";
+        String ordenListado = "";
+        if (IsNullOrEmpty(request.autor)) {
+                listaFiltros = " ma.autor like '%" + request.autor.trim() + "%' ";
+        } 
+
+        if (!IsNullOrEmpty(request.titulo)) {
+            if (IsNullOrEmpty(listaFiltros)) {
+                listaFiltros = " ma.titulo like '%" + request.titulo + "%' ";
+            }else{
+                listaFiltros = listaFiltros + " and ma.titulo like '%" + request.titulo + "%' ";
+            }
+        } 
+
+        if (!IsNullOrEmpty(request.cod_tipo_material)) {
+            if (IsNullOrEmpty(listaFiltros)) {
+                listaFiltros = " tipma.cod_tipo_material = '" + request.cod_tipo_material + "' ";
+            }else{
+                listaFiltros = listaFiltros + " and tipma.cod_tipo_material = '" + request.cod_tipo_material + "' ";
+            }
+        } 
+
+        if (!IsNullOrEmpty(request.cod_categoria_material)) {
+            if (IsNullOrEmpty(listaFiltros)) {
+                listaFiltros = " cm.cod_categoria_material = '" + request.cod_categoria_material + "' ";
+            }else{
+                listaFiltros = listaFiltros + " and cm.cod_categoria_material = '" + request.cod_categoria_material + "' ";
+            }
+        } 
+
+        if (!IsNullOrEmpty(request.editorial)) {
+            if (IsNullOrEmpty(listaFiltros)) {
+                listaFiltros = " ma.editorial like '%" + request.editorial + "%' ";
+            }else{
+                listaFiltros = listaFiltros + " and ma.editorial like '%" + request.editorial + "%' ";
+            }
+        } 
+
+        if (request.flg_orden_alfabetico) {
+            ordenListado = " order by mt.titulo";
+        }   
+
+        if(!IsNullOrEmpty(listaFiltros)){
+            listaFiltros = " and (" + listaFiltros + ")";
+        }
+
+        return  new ResponseEntity<ListarMaterialPorFiltrosResponse>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/obtener_detalle_material/{id}")
     public ResponseEntity<ObtenerDetalleMaterialResponse> ObtenerDetalleMaterial(@PathVariable int id){
         return new ResponseEntity<ObtenerDetalleMaterialResponse>(HttpStatus.OK);
     }
