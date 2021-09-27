@@ -11,4 +11,5 @@ public class DataMaterial
     public Integer anio;
     public String categoria;
     public String tipo_material;
+    public String fecha_registro;
 }

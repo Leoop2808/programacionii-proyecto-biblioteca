@@ -43,6 +43,22 @@ public interface MaterialRepository extends JpaRepository<Material, String>{
     @Transactional
     Integer RegistrarCodigoMaterial(@Param("cod_material") String cod_material, @Param("id_material") Integer id_material, @Param("fecha_hoy") Date fecha_hoy);
 
+    @Query(value = "select distinct mt.id_material, mt.titulo, mt.autor, mt.editorial, mt.anio, cm.descripcion categoria, tipma.descripcion tipo_material, mt.fecha_registro " +
+    "from trs_material mt inner join mst_categoria_material cm on cm.id_categoria_material = mt.id_categoria_material " +
+    "inner join mst_tipo_material tipma on tipma.id_tipo_material = mt.id_tipo_material where mt.activo = true and mt.eliminado = false " +
+    "and cm.activo = true and cm.eliminado = false and tipma.activo = true and tipma.eliminado = false ", nativeQuery = true)  
+    List<Map<String, Object>> ListarMaterialPorFiltros();
+
+    @Query(value = "select distinct mt.id_material,mt.cod_material,mt.isbn,mt.titulo, mt.autor, mt.editorial,mt.anio,mt.descripcion descripcion_material,mt.num_paginas,cm.descripcion categoria,tipma.descripcion tipo_material " +
+    "from trs_material mt inner join mst_categoria_material cm on cm.id_categoria_material = mt.id_categoria_material inner join mst_tipo_material tipma on tipma.id_tipo_material = mt.id_tipo_material " +
+    "where mt.id_material = :id_material and mt.activo = true and mt.eliminado = false and cm.activo = true and cm.eliminado = false and tipma.activo = true and tipma.eliminado = false", nativeQuery = true)
+    Map<String, Object> ObtenerDetalleMaterial(@Param("id_material") Integer id_material);
+
+    @Query(value = "select mt.cod_tema,mt.descripcion desc_tema from trs_material_tema tmt inner join trs_material tm on tm.id_material = tmt.id_material " +
+    "inner join mst_tema mt on mt.id_tema = tmt .id_tema where tm.id_material = :id_material and tmt.activo = true and tmt.eliminado = false " +
+    "and tm.activo = true and tm.eliminado = false and mt.activo = true and mt.eliminado = false ", nativeQuery = true)  
+    List<Map<String, Object>> ObtenerTemasPorMaterial(@Param("id_material") Integer id_material);
+
     @Query(value = "select tm.cod_tipo_material, tm.descripcion as desc_tipo_material from mst_tipo_material tm where activo  = true and eliminado = false", nativeQuery = true)
     List<Map<String, Object>> ListarTipoMaterial();
 

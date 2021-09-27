@@ -92,58 +92,149 @@ public class MaterialController {
     @GetMapping("/lista_materiales")
     public ResponseEntity<ListarMaterialPorFiltrosResponse> ListarMaterialPorFiltros(@RequestBody ListarMaterialPorFiltrosRequest request){
         ListarMaterialPorFiltrosResponse response = new ListarMaterialPorFiltrosResponse();
-        String listaFiltros = "";
-        String ordenListado = "";
-        if (IsNullOrEmpty(request.autor)) {
-                listaFiltros = " ma.autor like '%" + request.autor.trim() + "%' ";
-        } 
+        try {
+            String listaFiltros = "";
+            String ordenListado = "";
+            if (!IsNullOrEmpty(request.autor)) {
+                    listaFiltros = " ma.autor like '%" + request.autor.trim() + "%' ";
+            } 
 
-        if (!IsNullOrEmpty(request.titulo)) {
-            if (IsNullOrEmpty(listaFiltros)) {
-                listaFiltros = " ma.titulo like '%" + request.titulo + "%' ";
-            }else{
-                listaFiltros = listaFiltros + " and ma.titulo like '%" + request.titulo + "%' ";
+            if (!IsNullOrEmpty(request.titulo)) {
+                if (IsNullOrEmpty(listaFiltros)) {
+                    listaFiltros = " ma.titulo like '%" + request.titulo + "%' ";
+                }else{
+                    listaFiltros = listaFiltros + " and ma.titulo like '%" + request.titulo + "%' ";
+                }
+            } 
+
+            if ((request.anio_inicio != null && request.anio_inicio > 0) &&
+                (request.anio_fin == null && request.anio_fin <= 0)) {
+                if (IsNullOrEmpty(listaFiltros)) {
+                    listaFiltros = " anio :: int >= " + request.anio_inicio.toString() + " ";
+                }else{
+                    listaFiltros = listaFiltros + " and anio :: int >= " + request.anio_inicio.toString() + " ";
+                }
             }
-        } 
 
-        if (!IsNullOrEmpty(request.cod_tipo_material)) {
-            if (IsNullOrEmpty(listaFiltros)) {
-                listaFiltros = " tipma.cod_tipo_material = '" + request.cod_tipo_material + "' ";
-            }else{
-                listaFiltros = listaFiltros + " and tipma.cod_tipo_material = '" + request.cod_tipo_material + "' ";
+            if ((request.anio_fin != null && request.anio_fin > 0) &&
+                (request.anio_inicio == null && request.anio_inicio <= 0)) {
+                if (IsNullOrEmpty(listaFiltros)) {
+                    listaFiltros = " anio :: int <= " + request.anio_fin.toString() + " ";
+                }else{
+                    listaFiltros = listaFiltros + " and anio :: int <= " + request.anio_fin.toString() + " ";
+                }
             }
-        } 
 
-        if (!IsNullOrEmpty(request.cod_categoria_material)) {
-            if (IsNullOrEmpty(listaFiltros)) {
-                listaFiltros = " cm.cod_categoria_material = '" + request.cod_categoria_material + "' ";
-            }else{
-                listaFiltros = listaFiltros + " and cm.cod_categoria_material = '" + request.cod_categoria_material + "' ";
+            if ((request.anio_fin != null && request.anio_fin > 0) &&
+                (request.anio_inicio !=  null && request.anio_inicio > 0)) {
+                if (IsNullOrEmpty(listaFiltros)) {
+                    listaFiltros = " anio :: int between " + request.anio_inicio.toString() + " and " + request.anio_fin.toString() + " ";
+                }else{
+                    listaFiltros = listaFiltros + " and anio :: int between " + request.anio_inicio.toString() + " and " + request.anio_fin.toString() + " ";
+                }
             }
-        } 
 
-        if (!IsNullOrEmpty(request.editorial)) {
-            if (IsNullOrEmpty(listaFiltros)) {
-                listaFiltros = " ma.editorial like '%" + request.editorial + "%' ";
-            }else{
-                listaFiltros = listaFiltros + " and ma.editorial like '%" + request.editorial + "%' ";
-            }
-        } 
+            if (!IsNullOrEmpty(request.cod_tipo_material)) {
+                if (IsNullOrEmpty(listaFiltros)) {
+                    listaFiltros = " tipma.cod_tipo_material = '" + request.cod_tipo_material + "' ";
+                }else{
+                    listaFiltros = listaFiltros + " and tipma.cod_tipo_material = '" + request.cod_tipo_material + "' ";
+                }
+            } 
 
-        if (request.flg_orden_alfabetico) {
-            ordenListado = " order by mt.titulo";
-        }   
+            if (!IsNullOrEmpty(request.cod_categoria_material)) {
+                if (IsNullOrEmpty(listaFiltros)) {
+                    listaFiltros = " cm.cod_categoria_material = '" + request.cod_categoria_material + "' ";
+                }else{
+                    listaFiltros = listaFiltros + " and cm.cod_categoria_material = '" + request.cod_categoria_material + "' ";
+                }
+            } 
 
-        if(!IsNullOrEmpty(listaFiltros)){
-            listaFiltros = " and (" + listaFiltros + ")";
-        }
+            if (!IsNullOrEmpty(request.editorial)) {
+                if (IsNullOrEmpty(listaFiltros)) {
+                    listaFiltros = " ma.editorial like '%" + request.editorial + "%' ";
+                }else{
+                    listaFiltros = listaFiltros + " and ma.editorial like '%" + request.editorial + "%' ";
+                }
+            } 
+
+            if (request.flg_orden_alfabetico) {
+                ordenListado = " mt.titulo,";
+            }   
+
+            List<Map<String, Object>> listaMateriales = _materialRepository.ListarMaterialPorFiltros();         
+            if (listaMateriales == null || listaMateriales.size() <= 0) {
+                response.codigo = 0;
+                response.descripcion = "No se encontraron materiales";
+            } else {
+                response.lista_materiales = new ArrayList<DataMaterial>();
+                for (Map<String,Object> itemMaterial : listaMateriales) {
+                    DataMaterial material = new DataMaterial();
+                    material.id_material = Integer.parseInt(itemMaterial.get("id_material").toString());
+                    material.titulo = itemMaterial.get("titulo").toString();
+                    material.autor = itemMaterial.get("autor").toString();
+                    material.editorial = itemMaterial.get("editorial").toString();
+                    material.anio = Integer.parseInt(itemMaterial.get("anio").toString());
+                    material.categoria = itemMaterial.get("categoria").toString();
+                    material.tipo_material = itemMaterial.get("tipo_material").toString();
+                    material.fecha_registro = itemMaterial.get("fecha_registro").toString();
+                    response.lista_materiales.add(material);
+                } 
+                response.codigo = 1;
+                response.descripcion = "Materiales obtenidos correctamente";               
+            }  
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al listar los materiales";
+        }        
 
         return  new ResponseEntity<ListarMaterialPorFiltrosResponse>(response, HttpStatus.OK);
     }
 
     @GetMapping("/obtener_detalle_material/{id}")
     public ResponseEntity<ObtenerDetalleMaterialResponse> ObtenerDetalleMaterial(@PathVariable int id){
-        return new ResponseEntity<ObtenerDetalleMaterialResponse>(HttpStatus.OK);
+        ObtenerDetalleMaterialResponse response = new ObtenerDetalleMaterialResponse();
+        try {
+            Map<String, Object> DetalleMaterial = _materialRepository.ObtenerDetalleMaterial(id);   
+            if (DetalleMaterial == null) {
+                response.codigo = 0;
+                response.descripcion = "No se encontraron datos del material";
+                return  new ResponseEntity<ObtenerDetalleMaterialResponse>(response, HttpStatus.OK);
+            }  
+            response.id_material = Integer.parseInt(DetalleMaterial.get("id_material").toString());
+            response.codigo_material = DetalleMaterial.get("cod_material").toString();
+            response.isbn = DetalleMaterial.get("isbn").toString();
+            response.titulo = DetalleMaterial.get("titulo").toString();
+            response.autor = DetalleMaterial.get("autor").toString();
+            response.editorial = DetalleMaterial.get("editorial").toString();
+            response.anio = DetalleMaterial.get("anio").toString();
+            response.descripcion_material = DetalleMaterial.get("descripcion_material").toString();
+            response.num_paginas = Integer.parseInt(DetalleMaterial.get("num_paginas").toString());
+            response.categoria = DetalleMaterial.get("categoria").toString();
+            response.tipo_material = DetalleMaterial.get("tipo_material").toString();   
+
+            List<Map<String, Object>> listaTemas = _materialRepository.ObtenerTemasPorMaterial(id);  
+            if (listaTemas == null || listaTemas.size() <= 0) {
+                response.codigo = 1;
+                response.descripcion = "No se encontraron temas";
+            } else {
+                response.lista_temas = new ArrayList<DataTema>();
+                for (Map<String,Object> itemTema : listaTemas) {
+                    DataTema tema = new DataTema();
+                    tema.cod_tema = itemTema.get("cod_tema").toString();
+                    tema.desc_tema = itemTema.get("desc_tema").toString();
+                    response.lista_temas.add(tema);
+                } 
+                
+                response.codigo = 1;
+                response.descripcion = "Detalle del material obtenido correctamente";
+            }  
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al obtener el detalle del material";
+        }
+
+        return  new ResponseEntity<ObtenerDetalleMaterialResponse>(response, HttpStatus.OK);
     }
 
     @PostMapping("/registrar_prestamo_material")
