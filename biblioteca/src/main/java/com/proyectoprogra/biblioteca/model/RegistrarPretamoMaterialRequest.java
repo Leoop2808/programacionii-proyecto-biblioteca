@@ -1,7 +1,7 @@
 package com.proyectoprogra.biblioteca.model;
 
 public class RegistrarPretamoMaterialRequest {
-    public Integer id_material;
+    public String cod_material;
     public String nombre_solicitante;
     public String dni_solicitante;
     public String correo_solicitante;

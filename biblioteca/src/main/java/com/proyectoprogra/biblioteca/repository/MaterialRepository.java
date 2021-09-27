@@ -26,20 +26,19 @@ public interface MaterialRepository extends JpaRepository<Material, String>{
 
     
     @Query(value = "insert into trs_material (id_tipo_material,id_categoria_material, isbn, autor, titulo, anio, descripcion,editorial, num_paginas,flg_disponibilidad,activo,eliminado, fecha_registro, fecha_modificacion) "+
-    " values (:id_tipo_material,:id_categoria_material,:isbn,:autor,:titulo,:anio,:descripcion,:editorial,:num_paginas,:flg_disponibilidad,:activo,:eliminado, current_timestamp, current_timestamp) returning id_material;", nativeQuery = true)
+    " values (:id_tipo_material,:id_categoria_material,:isbn,:autor,:titulo,:anio,:descripcion,:editorial,:num_paginas,true,true,false, current_timestamp, current_timestamp) returning id_material;", nativeQuery = true)
     @Transactional
     Integer RegistrarMaterial(@Param("id_tipo_material") Integer id_tipo_material, @Param("id_categoria_material") Integer id_categoria_material, 
     @Param("isbn") String isbn, @Param("autor") String autor, @Param("titulo") String titulo, @Param("anio") Integer anio, @Param("descripcion") String descripcion,
-    @Param("editorial") String editorial, @Param("num_paginas") Integer num_paginas, @Param("flg_disponibilidad") Boolean flg_disponibilidad, 
-    @Param("activo") Boolean activo, @Param("eliminado") Boolean eliminado);
+    @Param("editorial") String editorial, @Param("num_paginas") Integer num_paginas);
 
     @Modifying
-    @Query(value = "insert into trs_material_tema (id_material, id_tema,activo, eliminado, fecha_registro, fecha_modificacion) values (:id_material,:id_tema,:activo,:eliminado, current_timestamp, current_timestamp)", nativeQuery = true)
+    @Query(value = "insert into trs_material_tema (id_material, id_tema,activo, eliminado, fecha_registro, fecha_modificacion) values (:id_material,:id_tema,true,false, current_timestamp, current_timestamp)", nativeQuery = true)
     @Transactional
-    Integer RegistrarTemaMaterial(@Param("id_material") Integer id_material, @Param("id_tema") Integer id_tema, @Param("activo") Boolean activo, @Param("eliminado") Boolean eliminado);
+    Integer RegistrarTemaMaterial(@Param("id_material") Integer id_material, @Param("id_tema") Integer id_tema);
 
     @Modifying
-    @Query(value = "update trs_material set cod_material  = :cod_material, fecha_modificacion = current_timestamp where id_material = :id_material", nativeQuery = true)
+    @Query(value = "update trs_material set cod_material  = :cod_material , fecha_modificacion = current_timestamp where id_material = :id_material", nativeQuery = true)
     @Transactional
     Integer RegistrarCodigoMaterial(@Param("cod_material") String cod_material, @Param("id_material") Integer id_material);
 
@@ -75,7 +74,33 @@ public interface MaterialRepository extends JpaRepository<Material, String>{
     List<Map<String, Object>> ListarTemas();
 
     @Modifying
-    @Query(value = "insert into mst_tema (cod_tema, descripcion, activo, eliminado) values (:codTema,:descTema,:activo,:eliminado)", nativeQuery = true)
+    @Query(value = "insert into mst_tema (cod_tema, descripcion, activo, eliminado) values (:codTema,:descTema,true,false)", nativeQuery = true)
     @Transactional
-    Integer RegistrarTema(@Param("codTema") String codTema, @Param("descTema") String descTema, @Param("activo") Boolean activo, @Param("eliminado") Boolean eliminado);
+    Integer RegistrarTema(@Param("codTema") String codTema, @Param("descTema") String descTema);
+
+    @Query(value = "select id_material from trs_material where cod_material = :cod_material and activo = true and eliminado = false", nativeQuery = true)
+    Integer ObtenerIdMaterialPorCodigo(@Param("cod_material") String cod_material);
+
+    @Query(value = "select flg_disponibilidad from trs_material where id_material = :id_material and activo = true and eliminado = false", nativeQuery = true)
+    Boolean ObtenerDisponbilidadMaterial(@Param("id_material") Integer id_material);
+
+    @Modifying
+    @Query(value = "update trs_material set flg_disponibilidad = :flg_disponibilidad, fecha_modificacion  = current_timestamp where id_material = :id_material", nativeQuery = true)
+    @Transactional
+    Integer ActualizarDisponibilidadMaterial(@Param("id_material") Integer id_material, @Param("flg_disponibilidad") Boolean flg_disponibilidad);
+
+    @Query(value = "insert into trs_prestamo_material(id_material, nombre_prestador, nombre_solicitante, dni_solicitante, " +
+    "dias_prestamo, telefono_solicitante, correo_solicitante, fecha_pactada_devolucion, activo, eliminado, fecha_registro, fecha_modificacion) " +
+    "values (:id_material,:nombre_prestador,:nombre_solicitante,:dni_solicitante,:dias_prestamo,:telefono_solicitante,:correo_solicitante, " +
+    ":fecha_pactada_devolucion, true, false, current_timestamp, current_timestamp) returning id_prestamo_material", nativeQuery = true)
+    @Transactional
+    Integer RegistrarPrestamoMaterial(@Param("id_material") Integer id_material,@Param("nombre_solicitante") String nombre_solicitante,
+    @Param("dni_solicitante") String dni_solicitante, @Param("correo_solicitante") String correo_solicitante, 
+    @Param("telefono_solicitante") String telefono_solicitante,@Param("nombre_prestador") String nombre_prestador,
+    @Param("dias_prestamo") Integer dias_prestamo, @Param("fecha_pactada_devolucion") Date fecha_pactada_devolucion);
+
+    @Modifying
+    @Query(value = "update trs_prestamo_material set cod_prestamo_material = :codigo_prestamo , fecha_modificacion = current_timestamp where id_prestamo_material = :id_prestamo ", nativeQuery = true)
+    @Transactional
+    Integer RegistrarCodigoPrestamoMaterial(@Param("codigo_prestamo") String codigoPrestamo,@Param("id_prestamo") Integer id_prestamo);
 }

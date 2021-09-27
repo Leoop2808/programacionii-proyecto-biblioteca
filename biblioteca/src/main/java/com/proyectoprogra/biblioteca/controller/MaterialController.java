@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import com.proyectoprogra.biblioteca.repository.MaterialRepository;
@@ -59,16 +62,16 @@ public class MaterialController {
             }             
 
             Integer idNuevoMaterial = _materialRepository.RegistrarMaterial(id_tipo_material,id_categoria_material,request.isbn,
-            request.autor, request.titulo, request.anio, request.descripcion, request.editorial, request.num_paginas,
-            true, true, false);       
+            request.autor, request.titulo, request.anio, request.descripcion, request.editorial, request.num_paginas);       
             if (idNuevoMaterial == null || idNuevoMaterial <= 0) {
                  response.codigo = 0;
                  response.descripcion = "No se pudo completar el registro del material";
             }else{
-                String codigoMaterial = idNuevoMaterial.toString();
+                DecimalFormat df = new DecimalFormat("00000000");
+                String codigoMaterial = df.format(idNuevoMaterial);
                 Integer resUpdMat = _materialRepository.RegistrarCodigoMaterial(codigoMaterial, idNuevoMaterial);
                 for (Integer idTema : listaTemas) {
-                    Integer regTemaMat = _materialRepository.RegistrarTemaMaterial(idNuevoMaterial, idTema, true, false);  
+                    Integer regTemaMat = _materialRepository.RegistrarTemaMaterial(idNuevoMaterial, idTema);  
                 }
                 response.codigo = 1;   
                 response.descripcion = "Material registrado correctamente";
@@ -259,7 +262,57 @@ public class MaterialController {
 
     @PostMapping("/registrar_prestamo_material")
     public ResponseEntity<RegistrarPretamoMaterialResponse> RegistrarPretamoMaterial(@RequestBody RegistrarPretamoMaterialRequest request){
-        return new ResponseEntity<RegistrarPretamoMaterialResponse>(HttpStatus.OK);
+        RegistrarPretamoMaterialResponse response = new RegistrarPretamoMaterialResponse();
+        try {
+            ValidarGeneral resVal = ValidarParametrosObligatoriosRegistroPrestamo(request); 
+            request.cod_material = request.cod_material.trim();
+            if (resVal.codigo != 1) {
+                response.codigo = resVal.codigo;
+                response.descripcion = resVal.descripcion;
+                return  new ResponseEntity<RegistrarPretamoMaterialResponse>(response, HttpStatus.OK);
+            }
+
+            Integer id_material = _materialRepository.ObtenerIdMaterialPorCodigo(request.cod_material);
+            if (id_material == null || id_material <= 0) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo identificar el material. No existe o no se encuentra disponible.";
+                return  new ResponseEntity<RegistrarPretamoMaterialResponse>(response, HttpStatus.OK);
+            } 
+
+            Boolean flg_disponibilidad = _materialRepository.ObtenerDisponbilidadMaterial(id_material);
+            if (!flg_disponibilidad) {
+                response.codigo = 0;
+                response.descripcion = "El material ya fue prestado y aun no se encuentra disponible para prestamos.";
+                return  new ResponseEntity<RegistrarPretamoMaterialResponse>(response, HttpStatus.OK);
+            }
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, request.dias_prestamo);
+            Date fecha_pactada_devolucion = calendar.getTime();
+
+            Integer idNuevoPrestamo = _materialRepository.RegistrarPrestamoMaterial(id_material,request.nombre_solicitante, 
+            request.dni_solicitante, request.correo_solicitante, request.telefono_solicitante, request.nombre_prestador, 
+            request.dias_prestamo, fecha_pactada_devolucion);  
+
+            if (idNuevoPrestamo == null || idNuevoPrestamo <= 0) {
+                 response.codigo = 0;
+                 response.descripcion = "No se pudo completar el registro del pretamo";
+            }else{
+                DecimalFormat df = new DecimalFormat("00000000");
+                String codigoPrestamo = df.format(idNuevoPrestamo);
+                Integer resUpdPre = _materialRepository.RegistrarCodigoPrestamoMaterial(codigoPrestamo, idNuevoPrestamo);
+                Integer resUpdMat = _materialRepository.ActualizarDisponibilidadMaterial(id_material, false);
+                response.codigo = 1;   
+                response.descripcion = "Prestamo de material registrado correctamente";
+                response.codigo_prestamo = codigoPrestamo;
+                SimpleDateFormat objSDF = new SimpleDateFormat("dd/mm/yyyy hh:mm:ss");
+                response.fecha_devolucion = objSDF.format(fecha_pactada_devolucion).toString();
+            }  
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al registrar el prestamo de un material" + e.getMessage();
+        }
+        return  new ResponseEntity<RegistrarPretamoMaterialResponse>(response, HttpStatus.OK);
     }
 
     @PutMapping("/registrar_devolucion_material")
@@ -353,7 +406,7 @@ public class MaterialController {
                 response.codigo = 0;
                 response.descripcion = "No se recibieron datos para registrar un nuevo tema";
             } else {
-               Integer regTem = _materialRepository.RegistrarTema(request.cod_tema, request.desc_tema , true, false);       
+               Integer regTem = _materialRepository.RegistrarTema(request.cod_tema, request.desc_tema);       
                if (regTem == null || regTem <= 0) {
                     response.codigo = 0;
                     response.descripcion = "No se pudo completar el registro del nuevo tema";
@@ -391,6 +444,55 @@ public class MaterialController {
         return concat;
     }
     //#endregion
+
+    public ValidarGeneral ValidarParametrosObligatoriosRegistroPrestamo(RegistrarPretamoMaterialRequest request){
+        ValidarGeneral response = new ValidarGeneral();
+        if (IsNullOrEmpty(request.cod_material)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el codigo del material";
+            return response;
+        } 
+
+        if (IsNullOrEmpty(request.nombre_solicitante)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el nombre del solicitante";
+            return response;
+        }
+
+        if (IsNullOrEmpty(request.dni_solicitante)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el dni del solicitante";
+            return response;
+        }
+
+        if (IsNullOrEmpty(request.correo_solicitante)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el correo del solicitante";
+            return response;
+        }
+
+        if (IsNullOrEmpty(request.telefono_solicitante)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el nombre del solicitante";
+            return response;
+        }
+
+        if (IsNullOrEmpty(request.nombre_prestador)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el nombre del prestador";
+            return response;
+        }
+
+        if (request.dias_prestamo == null || request.dias_prestamo <= 0) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar la cantidad de dias del prestamo";
+            return response;
+        }
+
+        response.codigo = 1;
+        response.descripcion = "Datos validados correctamente";
+        return response;
+    }
 
     //#region Validacion parametros obligatorios para la edicion de un material
     private ValidarGeneral ValidarParametrosObligatoriosEdicionMaterial(ModificarMaterialRequest request)
