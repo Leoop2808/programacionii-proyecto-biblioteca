@@ -56,21 +56,19 @@ public class MaterialController {
                 response.codigo = 0;
                 response.descripcion = "No se pudo identificar el tipo de material. El tipo recibido no existe o no se encuentra disponible.";
                 return  new ResponseEntity<RegistrarMaterialResponse>(response, HttpStatus.OK);
-            } 
-            
-            Date fecha_hoy = Calendar.getInstance().getTime();
+            }             
 
             Integer idNuevoMaterial = _materialRepository.RegistrarMaterial(id_tipo_material,id_categoria_material,request.isbn,
             request.autor, request.titulo, request.anio, request.descripcion, request.editorial, request.num_paginas,
-            true, true, false, fecha_hoy);       
+            true, true, false);       
             if (idNuevoMaterial == null || idNuevoMaterial <= 0) {
                  response.codigo = 0;
                  response.descripcion = "No se pudo completar el registro del material";
             }else{
                 String codigoMaterial = idNuevoMaterial.toString();
-                Integer resUpdMat = _materialRepository.RegistrarCodigoMaterial(codigoMaterial, idNuevoMaterial,fecha_hoy);
+                Integer resUpdMat = _materialRepository.RegistrarCodigoMaterial(codigoMaterial, idNuevoMaterial);
                 for (Integer idTema : listaTemas) {
-                    Integer regTemaMat = _materialRepository.RegistrarTemaMaterial(idNuevoMaterial, idTema, true, false, fecha_hoy);  
+                    Integer regTemaMat = _materialRepository.RegistrarTemaMaterial(idNuevoMaterial, idTema, true, false);  
                 }
                 response.codigo = 1;   
                 response.descripcion = "Material registrado correctamente";
@@ -84,9 +82,31 @@ public class MaterialController {
         return  new ResponseEntity<RegistrarMaterialResponse>(response, HttpStatus.OK);
     }
 
-    @PostMapping("/modificar_material")
-    public ResponseEntity<ModificarMaterialResponse> ModificarMaterial(@RequestBody ModificarMaterialRequest request){
-        return new ResponseEntity<ModificarMaterialResponse>(HttpStatus.OK);
+    @PutMapping("/modificar_material/{id}")
+    public ResponseEntity<ModificarMaterialResponse> ModificarMaterial(@PathVariable int id, @RequestBody ModificarMaterialRequest request){
+        ModificarMaterialResponse response = new ModificarMaterialResponse();
+        try {
+            ValidarGeneral resVal = ValidarParametrosObligatoriosEdicionMaterial(request); 
+            if (resVal.codigo != 1) {
+                response.codigo = resVal.codigo;
+                response.descripcion = resVal.descripcion;
+                return  new ResponseEntity<ModificarMaterialResponse>(response, HttpStatus.OK);
+            }
+
+            Integer resUpdMat = _materialRepository.ModificarMaterial(id, request.autor, request.titulo, 
+            request.anio, request.descripcion, request.editorial, request.num_paginas); 
+            if (resUpdMat == null || resUpdMat <= 0) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo completar la edición del material";
+           }else{
+               response.codigo = 1;   
+               response.descripcion = "Material editado correctamente";
+           }  
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al modificar el material";
+        }
+        return  new ResponseEntity<ModificarMaterialResponse>(response, HttpStatus.OK);
     }
 
     @GetMapping("/lista_materiales")
@@ -242,6 +262,11 @@ public class MaterialController {
         return new ResponseEntity<RegistrarPretamoMaterialResponse>(HttpStatus.OK);
     }
 
+    @PutMapping("/registrar_devolucion_material")
+    public ResponseEntity<RegistrarDevolucionMaterialResponse> RegistrarDevolucionMaterial(@PathVariable String codigo_prestamo){
+        return new ResponseEntity<RegistrarDevolucionMaterialResponse>(HttpStatus.OK);
+    }
+
     @GetMapping("/obtener_reporte_indicaciones")
     public ResponseEntity<ObtenerReporteIndicadoresResponse> ObtenerReporteIndicadores(@RequestBody ObtenerReporteIndicadoresRequest request){
         return new ResponseEntity<ObtenerReporteIndicadoresResponse>(HttpStatus.OK);
@@ -250,11 +275,6 @@ public class MaterialController {
     @GetMapping("/obtener_reporte_prestamos")
     public ResponseEntity<ObtenerReportePrestamosResponse> ObtenerReportePrestamos(@RequestBody ObtenerReportePrestamosRequest request){
         return new ResponseEntity<ObtenerReportePrestamosResponse>(HttpStatus.OK);
-    }
-
-    @PutMapping("/registrar_devolucion_material")
-    public ResponseEntity<RegistrarDevolucionMaterialResponse> RegistrarDevolucionMaterial(@PathVariable String codigo_prestamo){
-        return new ResponseEntity<RegistrarDevolucionMaterialResponse>(HttpStatus.OK);
     }
 
     @GetMapping("/listar_maestros")
@@ -350,10 +370,10 @@ public class MaterialController {
         return  new ResponseEntity<RegistrarTemaResponse>(response, HttpStatus.OK);
     }
 
+    //#region Utilidades
     private boolean IsNullOrEmpty(String descripcion) {
         return descripcion == null || descripcion == "";
     }
-
     private String JoinListaString(List<String> listaString, String caracterConcat)
     {
         String concat = "";
@@ -370,6 +390,53 @@ public class MaterialController {
         }    
         return concat;
     }
+    //#endregion
+
+    //#region Validacion parametros obligatorios para la edicion de un material
+    private ValidarGeneral ValidarParametrosObligatoriosEdicionMaterial(ModificarMaterialRequest request)
+    {
+        ValidarGeneral response = new ValidarGeneral();
+        if (IsNullOrEmpty(request.autor)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el nombre del autor";
+            return response;
+        } 
+
+        if (IsNullOrEmpty(request.titulo)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el titulo del material";
+            return response;
+        }
+
+        if (request.anio == null || request.anio <= 0) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el año de publicación";
+            return response;
+        }
+
+        if (IsNullOrEmpty(request.descripcion)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar la descripción para el material";
+            return response;
+        }
+
+        if (IsNullOrEmpty(request.editorial)) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el nombre de la editorial";
+            return response;
+        }
+
+        if (request.num_paginas == null || request.num_paginas <= 0) {
+            response.codigo = 0;
+            response.descripcion = "Debe enviar el número de paginas";
+            return response;
+        }
+
+        response.codigo = 1;
+        response.descripcion = "Datos validados correctamente";
+        return response;
+    }
+    //#endregion
 
     //#region Validacion parametros obligatorios para el registro de un nuevo material
     private ValidarGeneral ValidarParametrosObligatoriosRegistroMaterial(RegistrarMaterialRequest request)
