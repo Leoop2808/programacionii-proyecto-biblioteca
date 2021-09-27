@@ -103,4 +103,15 @@ public interface MaterialRepository extends JpaRepository<Material, String>{
     @Query(value = "update trs_prestamo_material set cod_prestamo_material = :codigo_prestamo , fecha_modificacion = current_timestamp where id_prestamo_material = :id_prestamo ", nativeQuery = true)
     @Transactional
     Integer RegistrarCodigoPrestamoMaterial(@Param("codigo_prestamo") String codigoPrestamo,@Param("id_prestamo") Integer id_prestamo);
+
+    @Query(value = "select 1 as indicador from trs_prestamo_material where cod_prestamo_material = :cod_prestamo and activo = true and eliminado = false", nativeQuery = true)
+    Integer ValidarExistenciaPrestamo(@Param("cod_prestamo") String cod_prestamo);
+
+    @Query(value = "select id_material from trs_prestamo_material where cod_prestamo_material = :cod_prestamo and activo = true and eliminado = false", nativeQuery = true)
+    Integer ObtenerMaterialPrestado(@Param("cod_prestamo") String cod_prestamo);
+
+    @Modifying
+    @Query(value = "update trs_prestamo_material set fecha_devolucion = current_timestamp, fecha_modificacion = current_timestamp where cod_prestamo_material = :cod_prestamo", nativeQuery = true)
+    @Transactional
+    Integer RegistrarDevolucionMaterial(@Param("cod_prestamo") String cod_prestamo);
 }

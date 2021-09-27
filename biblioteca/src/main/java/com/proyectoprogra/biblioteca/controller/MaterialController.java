@@ -315,9 +315,40 @@ public class MaterialController {
         return  new ResponseEntity<RegistrarPretamoMaterialResponse>(response, HttpStatus.OK);
     }
 
-    @PutMapping("/registrar_devolucion_material")
+    @PutMapping("/registrar_devolucion_material/{codigo_prestamo}")
     public ResponseEntity<RegistrarDevolucionMaterialResponse> RegistrarDevolucionMaterial(@PathVariable String codigo_prestamo){
-        return new ResponseEntity<RegistrarDevolucionMaterialResponse>(HttpStatus.OK);
+        RegistrarDevolucionMaterialResponse response = new RegistrarDevolucionMaterialResponse();
+        try {
+            Integer valExis = _materialRepository.ValidarExistenciaPrestamo(codigo_prestamo);
+            if (valExis == null || valExis != 1) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo identificar el prestamo. No existe o ya se registró la devolución";
+                return  new ResponseEntity<RegistrarDevolucionMaterialResponse>(response, HttpStatus.OK);
+            }
+
+            Integer id_material = _materialRepository.ObtenerMaterialPrestado(codigo_prestamo);
+            if (id_material == null || id_material <= 0) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo identificar el material prestado";
+                return  new ResponseEntity<RegistrarDevolucionMaterialResponse>(response, HttpStatus.OK);
+            }
+
+            Integer resRegDev = _materialRepository.RegistrarDevolucionMaterial(codigo_prestamo);
+            if (resRegDev == null || resRegDev <= 0) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo registrar la devolución del material";
+                return  new ResponseEntity<RegistrarDevolucionMaterialResponse>(response, HttpStatus.OK);
+            }
+
+            Integer resUpdMat = _materialRepository.ActualizarDisponibilidadMaterial(id_material, true);
+
+            response.codigo = 1;
+            response.descripcion = "Devolución de material registrada correctamente";
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al registrar la devolución del material";
+        }
+        return  new ResponseEntity<RegistrarDevolucionMaterialResponse>(response, HttpStatus.OK);
     }
 
     @GetMapping("/obtener_reporte_indicaciones")
@@ -445,6 +476,7 @@ public class MaterialController {
     }
     //#endregion
 
+    //#region Validacion parametros obligatorios para el registro de prestamo
     public ValidarGeneral ValidarParametrosObligatoriosRegistroPrestamo(RegistrarPretamoMaterialRequest request){
         ValidarGeneral response = new ValidarGeneral();
         if (IsNullOrEmpty(request.cod_material)) {
@@ -493,6 +525,7 @@ public class MaterialController {
         response.descripcion = "Datos validados correctamente";
         return response;
     }
+    //#endregion
 
     //#region Validacion parametros obligatorios para la edicion de un material
     private ValidarGeneral ValidarParametrosObligatoriosEdicionMaterial(ModificarMaterialRequest request)
