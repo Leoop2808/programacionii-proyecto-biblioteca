@@ -114,4 +114,19 @@ public interface MaterialRepository extends JpaRepository<Material, String>{
     @Query(value = "update trs_prestamo_material set fecha_devolucion = current_timestamp, fecha_modificacion = current_timestamp where cod_prestamo_material = :cod_prestamo", nativeQuery = true)
     @Transactional
     Integer RegistrarDevolucionMaterial(@Param("cod_prestamo") String cod_prestamo);
+
+    @Query(value = "select count(tpm.id_prestamo_material) cantidad_prestamos from trs_prestamo_material tpm where tpm.activo = true and tpm.eliminado = false", nativeQuery = true)
+    Integer ObtenerCantidadPrestamos();
+
+    @Query(value = "select count(id_prestamo_material) cantidad_prestamos from trs_prestamo_material where fecha_devolucion is null and activo = true and eliminado = false", nativeQuery = true)
+    Integer ObtenerCantidadNoDevueltos();
+
+    @Query(value = "select count(distinct dni_solicitante) cant_solicitantes from trs_prestamo_material where activo = true and eliminado = false", nativeQuery = true)
+    Integer ObtenerCantidadSolicitantes();
+
+    @Query(value = "select distinct tpm.nombre_solicitante, tpm.nombre_prestador, tm.cod_material, tm.isbn, tm.titulo as titulo_material, " +
+    "tpm.fecha_registro as fecha_prestamo,tpm.fecha_pactada_devolucion, tpm.fecha_devolucion,tpm.correo_solicitante, " +
+    "tpm.telefono_solicitante from trs_material tm inner join trs_prestamo_material tpm on tpm.id_material = tm.id_material " +
+    "where tm.activo = true and tm.eliminado = false and tpm.activo = true and tpm.eliminado = false", nativeQuery = true)
+    List<Map<String, Object>> ObtenerReportePrestamos();
 }

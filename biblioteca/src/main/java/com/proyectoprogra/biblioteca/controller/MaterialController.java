@@ -353,12 +353,74 @@ public class MaterialController {
 
     @GetMapping("/obtener_reporte_indicaciones")
     public ResponseEntity<ObtenerReporteIndicadoresResponse> ObtenerReporteIndicadores(@RequestBody ObtenerReporteIndicadoresRequest request){
-        return new ResponseEntity<ObtenerReporteIndicadoresResponse>(HttpStatus.OK);
+        ObtenerReporteIndicadoresResponse response = new ObtenerReporteIndicadoresResponse();
+        try {
+            Integer cantidad_prestamos = _materialRepository.ObtenerCantidadPrestamos();
+            if (cantidad_prestamos == null || cantidad_prestamos < 0) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo obtener la cantidad de prestamos";
+                return  new ResponseEntity<ObtenerReporteIndicadoresResponse>(response, HttpStatus.OK);
+            }
+
+            Integer cantidad_no_devueltos = _materialRepository.ObtenerCantidadNoDevueltos();
+            if (cantidad_no_devueltos == null || cantidad_no_devueltos < 0) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo obtener la cantidad de no devueltos";
+                return  new ResponseEntity<ObtenerReporteIndicadoresResponse>(response, HttpStatus.OK);
+            }
+
+            Integer cantidad_solicitantes = _materialRepository.ObtenerCantidadSolicitantes();
+            if (cantidad_solicitantes == null || cantidad_solicitantes < 0) {
+                response.codigo = 0;
+                response.descripcion = "No se pudo obtener la cantidad de solicitantes";
+                return  new ResponseEntity<ObtenerReporteIndicadoresResponse>(response, HttpStatus.OK);
+            }
+
+            response.cantidad_prestamos = cantidad_prestamos;
+            response.cantidad_no_devueltos = cantidad_no_devueltos;
+            response.cantidad_solicitantes = cantidad_solicitantes;
+            response.codigo = 1;
+            response.descripcion = "Indicadores obtenidos correctamente";
+
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al obtener reporte de indicadores";
+        }
+        return  new ResponseEntity<ObtenerReporteIndicadoresResponse>(response, HttpStatus.OK);
     }
 
     @GetMapping("/obtener_reporte_prestamos")
     public ResponseEntity<ObtenerReportePrestamosResponse> ObtenerReportePrestamos(@RequestBody ObtenerReportePrestamosRequest request){
-        return new ResponseEntity<ObtenerReportePrestamosResponse>(HttpStatus.OK);
+        ObtenerReportePrestamosResponse response = new ObtenerReportePrestamosResponse();
+        try {
+            List<Map<String, Object>> listaReportePrestamos = _materialRepository.ObtenerReportePrestamos();         
+            if (listaReportePrestamos == null || listaReportePrestamos.size() <= 0) {
+                response.codigo = 0;
+                response.descripcion = "No se encontraron registros de prestamos";
+            } else {
+                response.lista_prestamos = new ArrayList<DataPrestamo>();
+                for (Map<String,Object> itemMaterial : listaReportePrestamos) {
+                    DataPrestamo prestamo = new DataPrestamo();
+                    prestamo.nombre_solicitante = itemMaterial.get("nombre_solicitante").toString();
+                    prestamo.nombre_prestador = itemMaterial.get("nombre_prestador").toString();
+                    prestamo.cod_material = itemMaterial.get("cod_material").toString();
+                    prestamo.isbn = itemMaterial.get("isbn").toString();
+                    prestamo.titulo_material = itemMaterial.get("titulo_material").toString();
+                    prestamo.fecha_prestamo = itemMaterial.get("fecha_prestamo").toString();
+                    prestamo.fecha_pactada_devolucion = itemMaterial.get("fecha_pactada_devolucion").toString();
+                    prestamo.fecha_devolucion = itemMaterial.get("fecha_devolucion") == null ? "" : itemMaterial.get("fecha_devolucion").toString();
+                    prestamo.correo_solicitante = itemMaterial.get("correo_solicitante") == null ? "" : itemMaterial.get("correo_solicitante").toString();
+                    prestamo.telefono_solicitante = itemMaterial.get("telefono_solicitante") == null ? "" : itemMaterial.get("telefono_solicitante").toString();
+                    response.lista_prestamos.add(prestamo);
+                } 
+                response.codigo = 1;
+                response.descripcion = "Reporte de prestamos obtenido correctamente";               
+            }  
+        } catch (Exception e) {
+            response.codigo = -1;
+            response.descripcion = "Error interno al obtener reporte de prestamos";
+        }
+        return  new ResponseEntity<ObtenerReportePrestamosResponse>(response, HttpStatus.OK);
     }
 
     @GetMapping("/listar_maestros")
