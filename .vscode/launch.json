@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-BibliotecaApplication<biblioteca>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.proyectoprogra.biblioteca.BibliotecaApplication",
+            "projectName": "biblioteca",
+            "args": ""
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-DashboardApplication<dashboard>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.webdashboard.dashboard.DashboardApplication",
+            "projectName": "dashboard",
+            "args": ""
+        }
+    ]
+}

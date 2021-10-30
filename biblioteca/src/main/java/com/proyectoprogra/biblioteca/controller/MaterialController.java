@@ -352,7 +352,8 @@ public class MaterialController {
     }
 
     @GetMapping("/obtener_reporte_indicaciones")
-    public ResponseEntity<ObtenerReporteIndicadoresResponse> ObtenerReporteIndicadores(@RequestBody ObtenerReporteIndicadoresRequest request){
+    // public ResponseEntity<ObtenerReporteIndicadoresResponse> ObtenerReporteIndicadores(@RequestBody ObtenerReporteIndicadoresRequest request){
+    public ResponseEntity<ObtenerReporteIndicadoresResponse> ObtenerReporteIndicadores(){
         ObtenerReporteIndicadoresResponse response = new ObtenerReporteIndicadoresResponse();
         try {
             Integer cantidad_prestamos = _materialRepository.ObtenerCantidadPrestamos();
