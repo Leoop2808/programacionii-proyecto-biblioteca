@@ -9,23 +9,25 @@ function graficoPrincipal() {
         url: "api/dashboard/indicadores",
         dataType: "json",
       }).done(function (jsonData) {
+        console.log(jsonData);
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'descripcion');
-        data.addColumn('number', 'montototal');
+        data.addColumn('number', 'cantidad_no_devueltos');
+        data.addColumn('number', 'cantidad_prestamos');
+        data.addColumn('number', 'cantidad_solicitantes');
         
-
-        jsonData.forEach(function (row) {
-          data.addRow([
-            row.descripcion,
-            row.montototal
-          ]);
-        });
+        data.addRow([
+          jsonData.descripcion,
+          jsonData.cantidad_no_devueltos,
+          jsonData.cantidad_prestamos,
+          jsonData.cantidad_solicitantes
+        ]);
 
         var options = {
           chart: {
             width: 600,
             height: 400,
-            title: 'Reporte de  Ventas',
+            title: 'Reporte de Prestamos',
             legend: { position: 'top'}
           }
         };
