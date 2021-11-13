@@ -2,41 +2,41 @@ google.charts.load('current', {'packages':['corechart']});
 
 google.charts.setOnLoadCallback(graficoPrincipal);
 
-console.log("prueba");
-
 function graficoPrincipal() {
       $.ajax({
         url: "api/dashboard/indicadores",
         dataType: "json",
       }).done(function (jsonData) {
         console.log(jsonData);
+
+        $("#cant_solicitantes").html("" + jsonData.cantidad_solicitantes + " Solicitantes");
+
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'descripcion');
-        data.addColumn('number', 'cantidad_no_devueltos');
-        data.addColumn('number', 'cantidad_prestamos');
-        data.addColumn('number', 'cantidad_solicitantes');
+        data.addColumn('number', 'Material');
         
         data.addRow([
-          jsonData.descripcion,
-          jsonData.cantidad_no_devueltos,
-          jsonData.cantidad_prestamos,
-          jsonData.cantidad_solicitantes
+          'Libros no devueltos',
+          jsonData.cantidad_no_devueltos
         ]);
 
-        var options = {
-          chart: {
-            width: 600,
-            height: 400,
-            title: 'Reporte de Prestamos',
-            legend: { position: 'top'}
-          }
-        };
+        data.addRow([
+          'Libros devueltos',
+          jsonData.cantidad_prestamos - jsonData.cantidad_no_devueltos
+        ]);
 
-        var formatter = new google.visualization.NumberFormat({fractionDigits: 2} );
+        var formatter = new google.visualization.NumberFormat({fractionDigits: 1} );
         formatter.format(data, 1);
 
-        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
-        chart.draw(data, options );
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div_dashboard'));
+        chart.draw(data);
+        
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div_dashboard_2'));
+        chart.draw(data);
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_dashboard_3'));
+        chart.draw(data);
+
       }).fail(function (jq, text, err) {
         console.log(text + ' - ' + err);
       });
