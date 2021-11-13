@@ -1,19 +1,56 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'dashboard')}">
 
 <body>
-  <div class="container">
-      <h3 class="text-center" style="margin-bottom: 20px;">
-        PRÉSTAMO DE LIBROS
-      </h3>
-    <div id="chart_div" style="width: 100%; margin-bottom: 30px;" class="text-center"></div>
-    <div id="chart_div_2" style="width: 100%; margin-bottom: 30px;" class="text-center"></div>
-    <div id="chart_div_3" style="width: 100%; margin-bottom: 30px;" class="text-center"></div>
-  </div>
- 
- 
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  <script th:src="@{/js/dashboard.js}"></script>  
+  <div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card ">
+                    <div class="card-header ">
+                        <h4 class="card-title">Prestamos</h4>
+                        <p class="card-category">Devueltos y no devueltos</p>
+                    </div>
+                    <div id="chart_div_dashboard"></div>                                 
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card ">
+                    <div class="card-header ">
+                        <h4 class="card-title">Prestamos 2</h4>
+                        <p class="card-category">Devueltos  y no devueltos</p>
+                    </div>
+                    <div id="chart_div_dashboard_2"></div>    
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card ">
+                    <div class="card-header ">
+                        <h4 class="card-title">Prestamos 3</h4>
+                        <p class="card-category">Devueltos y no devueltos</p>
+                    </div>
+                    <div id="chart_div_dashboard_3"></div>    
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card  card-tasks">
+                    <div class="card-header ">
+                        <h4 class="card-title">Solicitantes</h4>
+                        <p class="card-category">Contabilización</p>
+                    </div>
+                    <div class = "card-body">  
+                        <h1 id="cant_solicitantes"></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+<script th:src="@{/js/dashboard.js}"></script>  
 
 </body>
 
