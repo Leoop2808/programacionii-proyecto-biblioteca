@@ -391,7 +391,8 @@ public class MaterialController {
     }
 
     @GetMapping("/obtener_reporte_prestamos")
-    public ResponseEntity<ObtenerReportePrestamosResponse> ObtenerReportePrestamos(@RequestBody ObtenerReportePrestamosRequest request){
+    //public ResponseEntity<ObtenerReportePrestamosResponse> ObtenerReportePrestamos(@RequestBody ObtenerReportePrestamosRequest request){
+    public ResponseEntity<ObtenerReportePrestamosResponse> ObtenerReportePrestamos(){
         ObtenerReportePrestamosResponse response = new ObtenerReportePrestamosResponse();
         try {
             List<Map<String, Object>> listaReportePrestamos = _materialRepository.ObtenerReportePrestamos();         
